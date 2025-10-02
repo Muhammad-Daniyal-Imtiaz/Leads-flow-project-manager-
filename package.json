@@ -1,0 +1,45 @@
+{
+  "name": "leadsflow180-project-tracker",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "clean": "rm -rf .next && rm -rf node_modules/.cache",
+    "clean:install": "yarn clean && yarn install",
+    "dev:memory": "next dev"
+  },
+  "dependencies": {
+    "@slack/web-api": "^7.10.0",
+    "@slack/webhook": "^7.0.6",
+    "@supabase/supabase-js": "^2.51.0",
+    "cookies-next": "^6.1.0",
+    "dotenv": "^17.2.1",
+    "form-data": "^4.0.4",
+    "framer-motion": "^12.23.12",
+    "jspdf": "^3.0.2",
+    "jspdf-autotable": "^5.0.2",
+    "lucide-react": "^0.543.0",
+    "next": "15.4.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/jspdf": "^1.3.3",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.4.1",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

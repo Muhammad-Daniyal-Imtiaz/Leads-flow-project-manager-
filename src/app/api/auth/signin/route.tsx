@@ -1,4 +1,3 @@
-// src/app/api/auth/signin/route.ts
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -51,54 +50,31 @@ export async function POST(request: Request) {
       )
     }
 
-    // Get client data
-    const { data: client, error: clientError } = await supabase
-      .from('clients')
+    // Get user data
+    const { data: dbUser, error: userError } = await supabase
+      .from('users')
       .select('*')
-      .eq('id', authData.user.id)
+      .eq('email', authData.user.email)
       .single()
 
-    if (clientError && clientError.code !== 'PGRST116') {
-      console.error('Error fetching client data:', clientError)
-    }
-
-    // If no client record exists, create one (shouldn't happen but safety net)
-    let clientData = client
-    if (!client) {
-      const { data: newClient, error: createError } = await supabase
-        .from('clients')
-        .insert([
-          {
-            id: authData.user.id,
-            email: authData.user.email!,
-            name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'User',
-            company: authData.user.user_metadata?.company || 'Unknown',
-            phone: authData.user.user_metadata?.phone || null,
-            role: 'client',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          },
-        ])
-        .select()
-        .single()
-
-      if (!createError) {
-        clientData = newClient
-      }
+    if (userError && userError.code !== 'PGRST116') {
+      console.error('Error fetching user data:', userError)
     }
 
     return NextResponse.json({
       success: true,
       message: 'Signed in successfully!',
-      client: clientData || {
-        id: authData.user.id,
+      user: dbUser || {
+        userid: authData.user.id,
         email: authData.user.email,
         name: authData.user.user_metadata?.full_name || authData.user.email?.split('@')[0] || 'User',
-        company: authData.user.user_metadata?.company || 'Unknown',
-        phone: authData.user.user_metadata?.phone || null,
-        role: 'client',
-        created_at: authData.user.created_at,
-        updated_at: authData.user.updated_at,
+        role: 'Member',
+        phone_number: authData.user.user_metadata?.phone_number || null,
+        country: authData.user.user_metadata?.country || null,
+        company_email: authData.user.user_metadata?.company_email || null,
+        linkedin_profile: authData.user.user_metadata?.linkedin_profile || null,
+        instagram_profile: authData.user.user_metadata?.instagram_profile || null,
+        createdat: authData.user.created_at,
       }
     })
     

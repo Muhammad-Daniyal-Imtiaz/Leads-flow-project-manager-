@@ -1,4 +1,3 @@
-// src/app/api/auth/callback/route.ts
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
@@ -26,24 +25,27 @@ export async function GET(request: Request) {
     }
 
     if (session?.user) {
-      // Ensure client record exists for OAuth users
-      const { data: existingClient } = await supabase
-        .from('clients')
-        .select('id')
-        .eq('id', session.user.id)
+      // Ensure user record exists for OAuth users
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('userid')
+        .eq('email', session.user.email)
         .single()
 
-      if (!existingClient) {
+      if (!existingUser) {
         await supabase
-          .from('clients')
+          .from('users')
           .insert([
             {
-              id: session.user.id,
-              email: session.user.email!,
               name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
-              company: session.user.user_metadata?.company || 'Unknown',
-              phone: session.user.user_metadata?.phone || null,
-              role: 'client',
+              email: session.user.email!,
+              role: 'Member',
+              phone_number: session.user.user_metadata?.phone_number || null,
+              country: session.user.user_metadata?.country || null,
+              company_email: session.user.user_metadata?.company_email || null,
+              linkedin_profile: session.user.user_metadata?.linkedin_profile || null,
+              instagram_profile: session.user.user_metadata?.instagram_profile || null,
+              createdat: new Date().toISOString(),
             },
           ])
       }

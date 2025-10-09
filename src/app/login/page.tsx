@@ -2,19 +2,21 @@
 
 import { useState, useEffect } from 'react';
 
-interface Client {
-  id: string;
+interface User {
+  userid: number;
   email: string;
   name: string;
-  company: string;
-  phone?: string;
-  role?: string;
-  created_at?: string;
-  updated_at?: string;
+  role: string;
+  linkedin_profile?: string;
+  instagram_profile?: string;
+  phone_number?: string;
+  country?: string;
+  company_email?: string;
+  createdat?: string;
 }
 
 export default function LoginPage() {
-  const [client, setClient] = useState<Client | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -22,34 +24,37 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [country, setCountry] = useState('');
+  const [companyEmail, setCompanyEmail] = useState('');
+  const [linkedinProfile, setLinkedinProfile] = useState('');
+  const [instagramProfile, setInstagramProfile] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Function to store client in localStorage
-  const storeClientInLocalStorage = (clientData: Client) => {
-    localStorage.setItem('client', JSON.stringify(clientData));
+  // Function to store user in localStorage
+  const storeUserInLocalStorage = (userData: User) => {
+    localStorage.setItem('user', JSON.stringify(userData));
   };
 
-  // Function to get client from localStorage
-  const getClientFromLocalStorage = (): Client | null => {
+  // Function to get user from localStorage
+  const getUserFromLocalStorage = (): User | null => {
     if (typeof window !== 'undefined') {
-      const storedClient = localStorage.getItem('client');
-      return storedClient ? JSON.parse(storedClient) : null;
+      const storedUser = localStorage.getItem('user');
+      return storedUser ? JSON.parse(storedUser) : null;
     }
     return null;
   };
 
-  // Function to clear client from localStorage
-  const clearClientFromLocalStorage = () => {
-    localStorage.removeItem('client');
+  // Function to clear user from localStorage
+  const clearUserFromLocalStorage = () => {
+    localStorage.removeItem('user');
   };
 
   useEffect(() => {
-    // Check if client exists in localStorage on component mount
-    const storedClient = getClientFromLocalStorage();
-    if (storedClient) {
-      setClient(storedClient);
+    // Check if user exists in localStorage on component mount
+    const storedUser = getUserFromLocalStorage();
+    if (storedUser) {
+      setUser(storedUser);
     } else {
       checkAuthStatus();
     }
@@ -76,16 +81,16 @@ export default function LoginPage() {
       const response = await fetch('/api/auth/session');
       const data = await response.json();
       
-      if (response.ok && data.client) {
-        setClient(data.client);
-        storeClientInLocalStorage(data.client); // Store in localStorage
+      if (response.ok && data.user) {
+        setUser(data.user);
+        storeUserInLocalStorage(data.user);
       } else {
-        setClient(null);
-        clearClientFromLocalStorage(); // Clear from localStorage
+        setUser(null);
+        clearUserFromLocalStorage();
       }
     } catch (err) {
       console.error('Error checking auth status:', err);
-      clearClientFromLocalStorage(); // Clear from localStorage on error
+      clearUserFromLocalStorage();
     }
   };
 
@@ -108,7 +113,7 @@ export default function LoginPage() {
       return;
     }
 
-    if (!isLogin && (!name || !company)) {
+    if (!isLogin && (!name || !email)) {
       setError('Please fill in all required fields');
       setLoading(false);
       return;
@@ -131,8 +136,11 @@ export default function LoginPage() {
           email,
           password,
           name: isLogin ? undefined : name,
-          company: isLogin ? undefined : company,
-          phone: isLogin ? undefined : phone,
+          phone_number: isLogin ? undefined : phoneNumber,
+          country: isLogin ? undefined : country,
+          company_email: isLogin ? undefined : companyEmail,
+          linkedin_profile: isLogin ? undefined : linkedinProfile,
+          instagram_profile: isLogin ? undefined : instagramProfile,
         }),
       });
 
@@ -141,8 +149,8 @@ export default function LoginPage() {
       if (response.ok) {
         if (isLogin) {
           setSuccess('Signed in successfully!');
-          setClient(data.client);
-          storeClientInLocalStorage(data.client); // Store in localStorage
+          setUser(data.user);
+          storeUserInLocalStorage(data.user);
           setEmail('');
           setPassword('');
           // Redirect to dashboard after a short delay
@@ -152,18 +160,22 @@ export default function LoginPage() {
         } else {
           setSuccess(data.message || 'Signup successful! Please check your email for verification.');
           // If immediate session was created (email confirmation not required)
-          if (data.client) {
-            setClient(data.client);
-            storeClientInLocalStorage(data.client); // Store in localStorage
+          if (data.user) {
+            setUser(data.user);
+            storeUserInLocalStorage(data.user);
             setTimeout(() => {
               window.location.href = '/dashboard';
             }, 1000);
           }
+          // Reset form fields
           setEmail('');
           setPassword('');
           setName('');
-          setCompany('');
-          setPhone('');
+          setPhoneNumber('');
+          setCountry('');
+          setCompanyEmail('');
+          setLinkedinProfile('');
+          setInstagramProfile('');
           setIsLogin(true);
         }
       } else {
@@ -185,10 +197,10 @@ export default function LoginPage() {
       });
 
       if (response.ok) {
-        setClient(null);
+        setUser(null);
         setSuccess('Signed out successfully!');
         setError(null);
-        clearClientFromLocalStorage(); // Clear from localStorage
+        clearUserFromLocalStorage();
         // Redirect to login after a short delay
         setTimeout(() => {
           window.location.href = '/login';
@@ -236,7 +248,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {client ? 'Client Profile' : (isLogin ? 'Sign in to your account' : 'Create a new account')}
+          {user ? 'User Profile' : (isLogin ? 'Sign in to your account' : 'Create a new account')}
         </h2>
       </div>
 
@@ -256,46 +268,60 @@ export default function LoginPage() {
             </div>
           )}
 
-          {client ? (
+          {user ? (
             <div className="space-y-6">
               <div className="text-center">
                 <div className="h-24 w-24 rounded-full bg-blue-200 flex items-center justify-center mx-auto">
                   <span className="text-2xl font-semibold text-blue-600">
-                    {client.name?.charAt(0)?.toUpperCase() || 'C'}
+                    {user.name?.charAt(0)?.toUpperCase() || 'U'}
                   </span>
                 </div>
-                <h3 className="mt-4 text-lg font-medium text-gray-900">Welcome, {client.name}!</h3>
+                <h3 className="mt-4 text-lg font-medium text-gray-900">Welcome, {user.name}!</h3>
                 <p className="text-sm text-gray-500">You are currently logged in</p>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Name</label>
-                  <div className="mt-1 text-sm text-gray-900">{client.name}</div>
+                  <div className="mt-1 text-sm text-gray-900">{user.name}</div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <div className="mt-1 text-sm text-gray-900 break-all">{client.email}</div>
+                  <div className="mt-1 text-sm text-gray-900 break-all">{user.email}</div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Company</label>
-                  <div className="mt-1 text-sm text-gray-900">{client.company}</div>
+                  <label className="block text-sm font-medium text-gray-700">Role</label>
+                  <div className="mt-1 text-sm text-gray-900">{user.role}</div>
                 </div>
 
-                {client.phone && (
+                {user.phone_number && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Phone</label>
-                    <div className="mt-1 text-sm text-gray-900">{client.phone}</div>
+                    <div className="mt-1 text-sm text-gray-900">{user.phone_number}</div>
                   </div>
                 )}
 
-                {client.created_at && (
+                {user.country && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Country</label>
+                    <div className="mt-1 text-sm text-gray-900">{user.country}</div>
+                  </div>
+                )}
+
+                {user.company_email && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Company Email</label>
+                    <div className="mt-1 text-sm text-gray-900 break-all">{user.company_email}</div>
+                  </div>
+                )}
+
+                {user.createdat && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700">Member Since</label>
                     <div className="mt-1 text-sm text-gray-900">
-                      {new Date(client.created_at).toLocaleDateString()}
+                      {new Date(user.createdat).toLocaleDateString()}
                     </div>
                   </div>
                 )}
@@ -357,30 +383,71 @@ export default function LoginPage() {
                     </div>
 
                     <div>
-                      <label htmlFor="company" className="block text-sm font-medium text-gray-700">
-                        Company *
+                      <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                        Phone Number
                       </label>
                       <input
-                        id="company"
-                        name="company"
-                        type="text"
-                        required
-                        value={company}
-                        onChange={(e) => setCompany(e.target.value)}
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        type="tel"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
                         className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                        Phone
+                      <label htmlFor="country" className="block text-sm font-medium text-gray-700">
+                        Country
                       </label>
                       <input
-                        id="phone"
-                        name="phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
+                        id="country"
+                        name="country"
+                        type="text"
+                        value={country}
+                        onChange={(e) => setCountry(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="companyEmail" className="block text-sm font-medium text-gray-700">
+                        Company Email
+                      </label>
+                      <input
+                        id="companyEmail"
+                        name="companyEmail"
+                        type="email"
+                        value={companyEmail}
+                        onChange={(e) => setCompanyEmail(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="linkedinProfile" className="block text-sm font-medium text-gray-700">
+                        LinkedIn Profile
+                      </label>
+                      <input
+                        id="linkedinProfile"
+                        name="linkedinProfile"
+                        type="url"
+                        value={linkedinProfile}
+                        onChange={(e) => setLinkedinProfile(e.target.value)}
+                        className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="instagramProfile" className="block text-sm font-medium text-gray-700">
+                        Instagram Profile
+                      </label>
+                      <input
+                        id="instagramProfile"
+                        name="instagramProfile"
+                        type="url"
+                        value={instagramProfile}
+                        onChange={(e) => setInstagramProfile(e.target.value)}
                         className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                       />
                     </div>

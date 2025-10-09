@@ -1,14 +1,13 @@
-// src/app/api/auth/signup/route.ts
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
   try {
-    const { email, password, name, company, phone } = await request.json()
+    const { email, password, name, phone_number, country, company_email, linkedin_profile, instagram_profile } = await request.json()
 
-    if (!email || !password || !name || !company) {
+    if (!email || !password || !name) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Email, password, and name are required' },
         { status: 400 }
       )
     }
@@ -24,8 +23,8 @@ export async function POST(request: Request) {
 
     // First check if user already exists
     const { data: existingUser, error: checkError } = await supabase
-      .from('clients')
-      .select('id')
+      .from('users')
+      .select('userid')
       .eq('email', email)
       .single()
 
@@ -54,8 +53,11 @@ export async function POST(request: Request) {
       options: {
         data: {
           full_name: name,
-          company: company,
-          phone: phone || null,
+          phone_number: phone_number || null,
+          country: country || null,
+          company_email: company_email || null,
+          linkedin_profile: linkedin_profile || null,
+          instagram_profile: instagram_profile || null,
         },
         emailRedirectTo: `${baseUrl}/dashboard`,
       },
@@ -85,31 +87,32 @@ export async function POST(request: Request) {
     }
 
     if (authData.user) {
-      // Create client record in the database using the user's ID
-      const { error: clientError } = await supabase
-        .from('clients')
+      // Create user record in the database
+      const { data: newUser, error: userError } = await supabase
+        .from('users')
         .insert([
           {
-            id: authData.user.id, // Use the same ID as auth user
             name: name,
             email: email,
-            company: company,
-            phone: phone || null,
-            role: 'client',
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+            role: 'Member',
+            phone_number: phone_number || null,
+            country: country || null,
+            company_email: company_email || null,
+            linkedin_profile: linkedin_profile || null,
+            instagram_profile: instagram_profile || null,
+            createdat: new Date().toISOString(),
           },
         ])
+        .select()
+        .single()
 
-      if (clientError) {
-        console.error('Error creating client record:', clientError)
-        // If client record fails, we should handle this gracefully
-        // The auth user exists but client record failed
+      if (userError) {
+        console.error('Error creating user record:', userError)
         return NextResponse.json(
           { 
             success: true,
             message: 'Account created but there was an issue with profile setup. Please contact support.',
-            client: null
+            user: null
           },
           { status: 201 }
         )
@@ -122,15 +125,17 @@ export async function POST(request: Request) {
       message: authData.session 
         ? 'Signup successful! Redirecting...' 
         : 'Please check your email to verify your account before signing in.',
-      client: authData.user ? {
-        id: authData.user.id,
+      user: authData.user ? {
+        userid: authData.user.id,
         email: authData.user.email,
         name: name,
-        company: company,
-        phone: phone || null,
-        role: 'client',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        role: 'Member',
+        phone_number: phone_number || null,
+        country: country || null,
+        company_email: company_email || null,
+        linkedin_profile: linkedin_profile || null,
+        instagram_profile: instagram_profile || null,
+        createdat: new Date().toISOString(),
       } : null
     })
     

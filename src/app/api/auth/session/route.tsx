@@ -1,48 +1,41 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// src/app/api/auth/session/route.ts
+import { createClient } from '@/utils/supabase/server'
+import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const { data: { session }, error } = await supabase.auth.getSession();
+    const supabase = await createClient()
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
 
-    if (error) {
-      console.error('Session error:', error.message);
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (authError || !user) {
+      return NextResponse.json({ client: null }, { status: 200 })
     }
 
-    if (!session?.user) {
-      return NextResponse.json({ user: null }, { status: 200 });
-    }
-
-    // Try to get user data from public.users table first
-    const { data: userData, error: userError } = await supabase
-      .from('users')
+    const { data: client, error: clientError } = await supabase
+      .from('clients')
       .select('*')
-      .eq('email', session.user.email)
-      .single();
+      .eq('id', user.id)
+      .single()
 
-    if (!userError && userData) {
-      return NextResponse.json({ user: userData }, { status: 200 });
+    if (clientError && clientError.code !== 'PGRST116') {
+      console.error('Error fetching client data:', clientError)
     }
 
-    // Fallback to auth user data
-    const user = {
-      userid: session.user.id,
-      email: session.user.email!,
-      name: session.user.user_metadata?.full_name || session.user.user_metadata?.name,
-      role: session.user.role,
-      createdat: session.user.created_at,
-    };
-
-    return NextResponse.json({ user }, { status: 200 });
-
-  } catch (err: any) {
-    console.error('Session API error:', err.message);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      client: client || {
+        id: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || user.email?.split('@')[0],
+        company: user.user_metadata?.company || 'Unknown',
+        phone: user.user_metadata?.phone || null,
+        role: 'client',
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      }
+    })
+  } catch (error) {
+    console.error('Session API error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

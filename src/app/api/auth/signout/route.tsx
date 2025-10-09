@@ -1,32 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+import { createClient } from '@/utils/supabase/server'
+import { NextResponse } from 'next/server'
 
 export async function POST() {
   try {
-    const { error } = await supabase.auth.signOut();
+    const supabase = await createClient()
+    
+    const { error } = await supabase.auth.signOut()
 
     if (error) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: 400 }
-      );
+      throw error
     }
 
+    return NextResponse.json({ success: true })
+  } catch (error: unknown) {
+    console.error('Signout error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Signout failed'
     return NextResponse.json(
-      { message: 'Signed out successfully' },
-      { status: 200 }
-    );
-
-  } catch (err: any) {
-    console.error('Signout error:', err);
-    return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: errorMessage },
       { status: 500 }
-    );
+    )
   }
 }

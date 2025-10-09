@@ -15,6 +15,7 @@
   "dependencies": {
     "@slack/web-api": "^7.10.0",
     "@slack/webhook": "^7.0.6",
+    "@supabase/ssr": "^0.7.0",
     "@supabase/supabase-js": "^2.51.0",
     "cookies-next": "^6.1.0",
     "dotenv": "^17.2.1",
